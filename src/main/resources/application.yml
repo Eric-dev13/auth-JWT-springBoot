@@ -1,17 +1,46 @@
+# ===============================================
+# = CONFIGURATION DU SERVER WEB EMBARQUE TOMCAT =
+# ===============================================
 # Spring Boot incluent par défaut un serveur Web intégré préconfiguré, adresse et port du serveur  8080 par défaut.
-server.port: 9001
+server:
+  port: 9000
 
-#logging.level.org.hibernate.SQL=DEBUG
-#logging.level.org.hibernate.type.descriptor.sql.BasicBinder=TRACE
-#logging.level.org.springframework.jdbc.core.JdbcTemplate=DEBUG
-#logging.level.org.springframework.jdbc.core.StatementCreatorUtils=TRACE
+# ======================================
+# = CONFIGURATION DE LA JOURNALISATION =
+# ======================================
+logging:
+  level:
+    # Permet de voir dans la console le port utilisé par Tomcat au démarrage
+    org.springframework.boot.web.embedded.tomcat: INFO
+    root: INFO
+    com.example: DEBUG
 
-logging.springframework.boot.web.embedded.tomcat: INFO
+# =============================
+# = DEFINIR PLUSIEURS PROFILS =
+# =============================
+# https://www.baeldung.com/spring-profiles
 
+# deux profils : "dev" et "prod". Le profil actif est défini sur "dev"
 spring:
-  # MySQL Configuration
+  profiles:
+    # profil a charger par défaut defini dans application.yml
+    # active: dev
+    # Profil Maven : peut être activé via la propriété de configuration spring.profiles.active
+    #	  Sa valeur sera utilisée pour remplacer l' espace réservé @spring.profiles.active@ dans application.properties ou application.yml
+    active: @spring.profiles.active@
+
+
+---
+spring:
+  #  Définir des propriétés spécifiques pour chaque profil
+  config:
+    activate:
+      on-profile: dev
+  # ============================================
+  # = CONFIGURATION DE LA BASE DE DONNEE MySQL =
+  # ============================================
   datasource:
-    url: jdbc:mysql://localhost:3306/auth-jwt
+    url: jdbc:mysql://localhost:3306/auth_jwt
     username: root
     password:
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -23,8 +52,7 @@ spring:
       # none: Désactive DDL
       # update: créer ou mets à jour le schéma de BDD si necessaire
       # validate:
-      ddl-auto: create
-
+      ddl-auto: create-drop
     # Le moyen le plus simple de vider les requêtes sql vers la sortie standard mais a priori non recommandé
     show-sql: true
     properties:
@@ -47,6 +75,15 @@ spring:
               # create-target: create.sql
               # create-source: metadata
 
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    url: jdbc:mysql://localhost:3306/proddatabase
+    username: produser
+    password: prodpassword
 
 
 

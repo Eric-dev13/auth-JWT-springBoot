@@ -1,86 +1,154 @@
-# TUTORIEL SUR LE DEVELOPPEMENT D'UNE APPLICATION WEB AVEC SPRING BOOT
+# AUTHENTIFICATION JWT AVEC SPRING BOOT
 
 **Une application web (API RestFull) sécurisée (https) avec gestion de l'authentification des utilisateurs et stockage des données dans une BDD.**
 
-## 1- Spécificités de l'application quizz
+# Initialiser le projet 
 
+Avec le générateur https://start.spring.io/
 
-## 2- Initialiser et configurer le projet
-
-### 2.1- Initialiser le projet avec le générateur https://start.spring.io/
-
-#### 2.1.1- Paramètrer le projet
 - Project: maven
 - Language: Java
 - Spring Boot: dernière version non snapshot
 - Project Metadata
-   - Group: com.ricou
-   - Artifact: api.quizz
-   - Name: api.quizz
-   - Description: Api ToDoList project for Spring Boot
+   - Group: com
+   - Artifact: api.jwt
+   - Name: api.jwt
+   - Description: Api avec authentification JWT pour Spring Boot
    - Package name:
    - Packaging: Jar ou War un fichier WAR (pour Web application Archive) est un fichier JAR utilisé pour contenir un ensemble de JavaServer Pages, servlets, classes Java, fichiers XML, et des pages web statiques (HTML, JavaScript…), le tout constituant une application web.
    - Java (version) : 17
-   - 2017118
 
-Les Paramètres sont stockées dans le fichier pom.xml à la racine du projet.
+**Les Paramètres sont stockées dans le *fichier pom.xml* à la racine du projet.**
 
-![](D:\WORKSPACE\2_DEV\workspace_java\java_projects\project_todolist\api.todolist\assets.readme\pom_xml.png)
-
-#### 2.1.2- Ajouter les dépendances
-- Spring Web Web : Build web, including RESTful, applications using Spring MVC. Uses Apache Tomcat as the default embedded container.
-- Lombok Developer Tools : C'est une bibliothèque Java qui aide à réduire le code et éviter les répétitions comme les getters, setters, etc.
-- Spring Data JPA SQL : Utiliser Spring Data et Hibernate pour persister les données dans les magasins SQL avec l'API Java Persistence.
-- Spring Boot DevTools Developer Tools : Fournit des redémarrages rapides des applications, LiveReload et des configurations pour une expérience de développement améliorée.
-- OAuth2 Client Security : Intégration de Spring Boot pour les fonctionnalités du client Spring Security OAuth2/OpenID Connect. (cas d'un "login with Google" par exemple)
-- Spring Security Security : Cadre d'authentification et de contrôle d'accès hautement personnalisable pour les applications Spring.
-- MySQL Driver SQL : Pilote JDBC pour MySQL.
+![image-20230716123121776](.\README.assets\image-20230716123121776.png)
 
 
-## 3- STRUCTURE DU PROJET MVC
-![mvc.png](./assets.readme/mvc.png)
 
-Ajouter les dossiers suivants
-- Controller
-- Services
-- Model
-- Repository
+## Les dépendances du projet
 
-## 4- Charger le projet (install dependencies, build, run)
+- **Spring Web Web** : Build web, including RESTful, applications using Spring MVC. Uses Apache Tomcat as the default embedded container.
+- **Lombok Developer Tools** : C'est une bibliothèque Java qui aide à réduire le code et éviter les répétitions comme les getters, setters, etc.
+- **Spring Data JPA SQL** : Utiliser Spring Data et Hibernate pour persister les données dans les magasins SQL avec l'API Java Persistence.
+- **Spring Boot DevTools Developer Tool**s : Fournit des redémarrages rapides des applications, LiveReload et des configurations pour une expérience de développement améliorée.
+- **OAuth2 Client Security** : Intégration de Spring Boot pour les fonctionnalités du client Spring Security OAuth2/OpenID Connect. (cas d'un "login with Google" par exemple)
+- **Spring Security Security** : Cadre d'authentification et de contrôle d'accès hautement personnalisable pour les applications Spring.
+- **MySQL Driver SQL** : Pilote JDBC pour MySQL.
 
-### 4.1- Ouvrir IntellJ
 
-### 4.2- Configuration du serveur web (tomcat)
 
-Spring Boot incluent par défaut un serveur Web intégré préconfiguré, adresse et port du serveur 8080 par défaut.
+## STRUCTURE DU PROJET MVC
 
-Allez dans `ressources\application.properties`
+![image-20230716123759142](.\README.assets\image-20230716123759142.png)
+
+
+
+
+
+## Configuration de l'application
+
+ Le fichier `application.yml` offre une approche plus lisible et structurée pour la configuration par rapport au fichier `application.properties` utilisant la syntaxe clé=valeur.
+
+Dans une application Spring Boot, le fichier `application.yml` est utilisé pour configurer des paramètres de l'application.
 
 ````
-server.port=9000
-# server.address=my_custom_ip
-logging.level.org.springframework.boot.web.embedded.tomcat=INFO
+# ===============================================
+# = CONFIGURATION DU SERVER WEB EMBARQUE TOMCAT =
+# ===============================================
+# Spring Boot incluent par défaut un serveur Web intégré préconfiguré, adresse et port du serveur  8080 par défaut.
+server:
+  port: 9000
+
+# ======================================
+# = CONFIGURATION DE LA JOURNALISATION =
+# ======================================
+logging:
+  level:
+    # Permet de voir dans la console le port utilisé par Tomcat au démarrage
+    org.springframework.boot.web.embedded.tomcat: INFO
+    root: INFO
+    com.example: DEBUG
+
+# =============================
+# = DEFINIR PLUSIEURS PROFILS =
+# =============================
+# https://www.baeldung.com/spring-profiles
+
+# deux profils : "dev" et "prod". Le profil actif est défini sur "dev"
+spring:
+  profiles:
+    # profil a charger par défaut defini dans application.yml
+    # active: dev
+    # Profil Maven : peut être activé via la propriété de configuration spring.profiles.active
+    #	  Sa valeur sera utilisée pour remplacer l' espace réservé @spring.profiles.active@ dans application.properties ou application.yml
+    active: @spring.profiles.active@
+
+
+---
+spring:
+  #  Définir des propriétés spécifiques pour chaque profil
+  config:
+    activate:
+      on-profile: dev
+  # ============================================
+  # = CONFIGURATION DE LA BASE DE DONNEE MySQL =
+  # ============================================
+  datasource:
+    url: jdbc:mysql://localhost:3306/auth_jwt
+    username: root
+    password:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      # Generer ou mettre à jour automatiquement les tables de la base de données à partir des classes d'entites.
+      # create-drop:
+      # create: Crée le schema de BDD et detruit le prédécent
+      # none: Désactive DDL
+      # update: créer ou mets à jour le schéma de BDD si necessaire
+      # validate:
+      ddl-auto: create-drop
+    # Le moyen le plus simple de vider les requêtes sql vers la sortie standard mais a priori non recommandé
+    show-sql: true
+    properties:
+      hibernate:
+        # Pour embellir
+        format_sql: true
+        #database: mysql
+        #database-plateform:
+      javax:
+        persistence:
+          schema-generation:
+            scripts:
+              # Génère un schéma de BDD avec Spring Boot JPA à partir des des entités
+              # Actions ( https://www.baeldung.com/spring-data-jpa-generate-db-schema)
+              #       none            - ne génère aucune commande DDL
+              #       create          - génère uniquement des commandes de création de base de données
+              #       drop            - génère uniquement des commandes de suppression de base de données
+              #       drop-and-create - génère des commandes de suppression de base de données suivies de commandes de création
+              # action: create
+              # create-target: create.sql
+              # create-source: metadata
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    url: jdbc:mysql://localhost:3306/proddatabase
+    username: produser
+    password: prodpassword
+
 ````
 
-Ce fichier de configuration peut-être converti en fichier au format `yaml` (indentation des sous clé / valeurs)
 
-### 4.3- Configuration de Maven (install dependencies, build, run)
 
-Edit configurations... 
+## Compilation du projet avec Maven
 
--> clique sur **+** Add new configuration `maven`
+![image-20230716135405005](.\README.assets\image-20230716135405005.png)
 
-![Maven.png](./assets.readme/Maven.png)
+![image-20230716135523190](.\README.assets\image-20230716135523190.png)
 
-![img_1.png](./assets.readme/img_1.png)
-
-![img_3.png](./assets.readme/img_3.png)
-
--> Parameter `clean package -f pom.xml`
-
-**Ou je compile en sélectionnant :**
-
-Lifecycle et sélectionner `clean` et `package` avec la touche `ctrl`
+**Autre possibilité**
 
 ![Lifecycle.png](./assets.readme/Lifecycle.png)
 
@@ -90,7 +158,13 @@ Execute Maven Goal
 
 `mvn clean package`
 
-### 4.4- Démarrer l'application avec Spring Boot Security
+## Démarrer le projet
+
+![image-20230716135559693](D:\WORKSPACE\2_DEV\workspace_java\java_projects\auth-JWT-springBoot\README.assets\image-20230716135559693.png)
+
+
+
+## Démarrer l'application avec Spring Boot Security
 
 Spring Boot Security repose sur 2 principes :
 - L’authentification : celui qui utilise l’application doit être identifié par un couple username/password.
@@ -167,33 +241,20 @@ pour en créer une dans le dossier `src\main\ressources\static\index.html`
 </body>
 </html>
 ````
-Suite dans le chapitre `6- Authentification et autorisation d'un utilisateur (Spring Boot Security et auth2)
 
-## 5- LE MODEL (persistance des données en BDD)
 
-### 5.1- Configuration de l'accès à la BDD
+## LE MODEL (persistance des données en BDD)
 
-````
-# ressources\application.properties
+### Configuration de l'accès à la BDD
 
-##########################################################################
-#                               MySQL Configuration                      #
-##########################################################################
-spring.jpa.hibernate.ddl-auto=update
-# spring.datasource.url=jdbc:mysql://${MYSQL_HOST:localhost}:3306/db_example
-spring.datasource.url=jdbc:mysql://localhost:3306/todolist
-spring.datasource.username=root
-spring.datasource.password=
-spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
-````
+![image-20230716140253128](.\README.assets\image-20230716140253128.png)
 
-### 5.2- Connecteur JDBC
+### Connecteur JDBC
+
 L’interface Java Database Connectivity ou JDBC est une API intégrée à la Java Standard Edition pour communiquer avec des bases relationnelles. Elle est censée normaliser cette communication: en principe une application s’appuyant sur JDBC peut de manière transparente passer d’une base MySQL à PostgreSQL ou à un autre système relationnel.
 
 
-### 5.3- Création de 2 classes d'entitées User et Todolist dans le dossier `Model` (objet représentant les tables dans la base de données).
-
-![model.png](./assets.readme/model.png)
+###  Création de la class  User  dans le dossier `Model` (objet représentant la table dans la base de données).
 
 Une entité JPA est, par définition, une classe Java qui doit avoir les propriétés suivantes :
 - Elle doit posséder un constructeur vide, public ou protected. Rappelons que ce constructeur vide existe par défaut si aucun constructeur n'existe dans la classe. Dans le cas contraire, il doit être ajouté explicitement.
@@ -201,79 +262,20 @@ Une entité JPA est, par définition, une classe Java qui doit avoir les propri�
 - Une entité JPA ne peut pas être une interface ou une énumération.
 - Une entité JPA peut être une classe concrête ou abstraite.
 
-
-#### 5.3.1- Annotations de classe
-
-**L'annotation @Entity** nous indique que cette classe est une classe persistante. Elle peut prendre un attribut name, qui fixe le nom de cette entité.
-
-**L'annotation @Table** permet de fixer le nom de la table dans laquelle les instances de cette classe vont être écrites. Cette annotation est particulièrement utile lorsque l'on doit associer un jeu de classes à des tables existantes. L'annotation @Table supporte plusieurs attributs :
-- **Les attributs catalog, schema et name** : permettent de fixer les paramètres de la table utilisée.
-- **L'attribut @UniqueConstraints** permet d'écrire des contraintes d'unicité sur des colonnes ou des groupes de colonnes.
-
-#### 5.3.2- Annotations des champs
-
-L'annotation @Column, les principaux attributs.
-- name indique le nom de la colonne dans la table;
-- length indique la taille maximale de la valeur de la propriété;
-- nullable (avec les valeurs false ou true) indique si la colonne accepte ou non des valeurs à NULL (au sens « base de données » du terme: une valeur à NULL est une absence de valeur);
-- unique indique que la valeur de la colonne est unique.
-
-##### 5.3.2.1- Définition des relations ou associations entre les tables `User` et `Todo`
-
-Les relations entre les tables peuvent être de type unidirectionnelle (1 seul sens) et bidirectionnelle (accés au données dans les 2 sens).
-
-Dans le cas d'une todolist avec authentification, **_1 utilisateur possède de 0 à n (plusieurs) taches_** et **_1 tache appartient forcement à 1 et 1 seul utilisateur_**.
-Donc on aura une relation bidirectionnelle :
-- ONE TO MANY côte `User`
-- MANY TO ONE côté `Todo`
-
-
-ONE TO MANY (1:n) côte `User`
-````java
-@OneToMany
-@JoinColumn(name = "user_id")
-private Set<TodoEntity> todos = new HashSet<TodoEntity>();
-/* OU une collection dans une liste 
-private List<TodoEntity> todos = new ArrayList<>();
-*/
-````
-
-MANY TO ONE (n:1) côté `Todo`
-
-Dans le jargon ORM, ce côté est « responsable » de la gestion du mapping.
-
-Dans la base relationnelle, c’est du côté plusieurs que l’on trouve la clé étrangère.
-
-Donc l’annotation @ManyToOne implique que la table Todo contient une colonne qui est une clé étrangère contenant la clé d’un user.
-
-Par défaut, JPA s’attend à ce que cette colonne se nomme USER_ID, mais il est possible de changer ce nom grâce à l’annotation @JoinColumn.
-
-Plutôt que par une colonne, il est également possible d’indiquer à JPA qu’il doit passer par une table d’association pour établir la relation entre les deux entités avec l’annotation @JoinTable
-
-Champ user_id dans la table todo pour conserver la référence de la clé étrangère utilisateur
-````java
-@ManyToOne(cascade = CascadeType.ALL)
-@JoinColumn(name = "user_id")
-private UserEntity user;
-````
-
-On peux aussi créer une **table d'association** pour stocker l' id de l'utilisateur et de la tache
-````java
-@ManyToOne(cascade = CascadeType.ALL)
-@JoinTable(
-          name = "user_todos",
-          joinColumns = @JoinColumn(name = "user_id"),
-          inverseJoinColumns = @JoinColumn(name = "todos_id")
-          )
-private UserEntity user;
-````
-
-#### 5.3.3- La classe `User` pour l'authentification et les autorisations
+#### La classe `User` pour l'authentification et les autorisations
 
 ````java
-package com.ricou.api.todolist.Model;
+// src/main/java/com/api/jwt/Model/UserEntity.java
 
+package com.api.jwt.Model;
+
+import com.api.jwt.security.Role;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.GrantedAuthority;
 
@@ -281,159 +283,237 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.*;
 
-// @Data /* Annotation Lombok = @Getter @Setter générer les accesseurs et mutateurs */
+/* 
+L'annotation @Data est un raccourci pratique fourni par la bibliothèque Lombok pour générer
+suivantes :
+    - Getters : Lombok crée des getters pour tous les champs non statiques de la classe.
+    - Setters : Lombok génère des setters pour tous les champs non finaux et non statiques de la classe.
+    - equals() et hashCode() : Lombok génère des implémentations de ces méthodes basées sur les champs de la classe.
+    - toString() : Lombok crée une méthode toString() qui inclut le nom de la classe, ainsi que les noms et valeurs de tous les champs.
+*/
+@Data
+
+/*
+L'annotation @Builder est un raccourci pratique fourni par la bibliothèque Lombok utilisée pour générer automatiquement un constructeur de type "Builder" dans une classe.
+Lombok génère un constructeur spécial appelé "Builder" qui vous permet de créer des instances de la classe de manière plus fluide et expressive.
+*/
+@Builder
+
+/*
+L'annotation @NoArgsConstructor est un raccourci pratique fourni par la bibliothèque Lombok utilisée pour générer automatiquement un constructeur sans arguments dans une classe.
+Cela permet de créer des instances de la classe sans avoir à spécifier explicitement les arguments du constructeur.
+*/
+@NoArgsConstructor
+
+/*
+L'annotation @AllArgsConstructor est un raccourci pratique fourni par la bibliothèque Lombok utilisée pour générer automatiquement un constructeur prenant en compte tous les champs de la classe en tant que paramètres.
+*/
+@AllArgsConstructor
+
+/*
+L'annotation @Entity est utilisée dans le framework Java Persistence API (JPA) pour indiquer qu'une classe est une entité persistante, c'est-à-dire qu'elle représente une table dans une base de données relationnelle. 
+cela indique que cette classe doit être mappée à une table dans la base de données.
+*/
 @Entity
+
+/*
+L'annotation @Table est utilisée dans le framework Java Persistence API (JPA) en conjonction avec l'annotation @Entity pour spécifier des informations supplémentaires sur la table correspondante à une entité persistante comme le nom de la table, le schéma de la table et d'autres attributs liés à la table dans la base de données.
+*/
 @Table(name = "user")
 public class UserEntity implements Serializable, UserDetails {
-  /* ID
-  L’identifiant est indiqué avec l’annotation @Id
-   */
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long userId;
+    /* ID
+    L’identifiant est indiqué avec l’annotation @Id
+     */
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-  @Column(name = "created_at")
-  private LocalDateTime createdAt;
+    /*
+	L'annotation @Column est utilisée en conjonction avec l'annotation @Entity pour personnaliser les propriétés de la colonne associée à ce champ dans la table de la base de données, telles que le nom de la colonne, le type de données, la longueur, etc.
+	*/
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 
-  @Column(name = "updated_at")
-  private LocalDateTime updatedAt;
+    /*
+	L'annotation @PrePersist est utilisée pour marquer une méthode qui doit être exécutée avant la persistance d'une entité dans la base de données.
+	*/
+    @PrePersist
+    public void prePersist() {
+        createdAt = LocalDateTime.now();
+    }
 
-  + @Column(name="username", length = 255, unique = true)
-  + private String username;
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
-  + @Column(name="password", length = 255)
-  + private String password;
+    @Column(name="email", length = 255, unique = true)
+    private String email;
 
-  @Column(name = "lastname", length = 255)
-  private String lastname;
+    @Column(name="password", length = 255)
+    private String password;
 
-  @Column(name="firstname", length = 255)
-  private String firstname;
+    @Column(name = "lastname", length = 255)
+    private String lastname;
 
-  /*
-  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-  private List<TodoEntity> todos = new ArrayList<>();
-  */
-  @OneToMany
-  @JoinColumn(name = "user_id")
-  private List<TodoEntity> todos = new ArrayList<>();
-  //private Set<TodoEntity> todos = new HashSet<TodoEntity>();
+    @Column(name="firstname", length = 255)
+    private String firstname;
 
-  @PrePersist
-  public void prePersist() {
-    createdAt = LocalDateTime.now();
-  }
+    /*
+	 Annotation utilisée dans le framework Java 
+*/
+    @Enumerated(EnumType.STRING)
+    private Role role;
 
-  public Long getUserId() {
-    return this.userId;
-  }
+    /*
 
-  public void setUserId(Long userId) {
-    this.userId = userId;
-  }
+*/
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(new SimpleGrantedAuthority(role.name()));
+    }
 
-  public LocalDateTime getCreatedAt() {
-    return this.createdAt;
-  }
+    @Override
+    public String getPassword(){
+        return password;
+    }
 
-  public void setCreatedAt(LocalDateTime createdAt) {
-    this.createdAt = createdAt;
-  }
+    @Override
+    public String getUsername(){
+        return email;
+    }
 
-  public LocalDateTime getUpdatedAt() {
-    return this.updatedAt;
-  }
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
 
-  public void setUpdatedAt(LocalDateTime updatedAt) {
-    this.updatedAt = updatedAt;
-  }
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
 
-  + public String getUsername() {
-    + return this.username;
-    + }
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
 
-  + public void setUsername(String username) {
-    + this.username = username;
-    + }
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
 
-  + public String getPassword() {
-    + return this.password;
-    + }
-
-  + public void setPassword(String password) {
-    + this.password = password;
-    + }
-
-  public String getLastname() {
-    return this.lastname;
-  }
-
-  public void setLastname(String lastname) {
-    this.lastname = lastname;
-  }
-
-  public String getFirstname() {
-    return this.firstname;
-  }
-
-  public void setFirstname(String firstname) {
-    this.firstname = firstname;
-  }
-
-  public List<TodoEntity> getTodos() {
-    return this.todos;
-  }
-
-  public void setTodos(List<TodoEntity> todos) {
-    this.todos = todos;
-  }
-
-  + @Override
-  + public boolean isAccountNonExpired() {
-    + return false;
-  + }
-  
-  + @Override
-  + public boolean isAccountNonLocked() {
-    + return false;
-  + }
-  
-  + @Override
-  + public boolean isCredentialsNonExpired() {
-    + return false;
-  + }
-  
-  + @Override
-  + public boolean isEnabled() {
-    + return false;
-  + }
-
-  + @Override
-  + public Collection<? extends GrantedAuthority> getAuthorities() {
-    + return null;
-  + }
-  
-  @Override
-  public String toString() {
-    return this.userId + " : " + this.lastname + " " + this.firstname + " " + this.username;
-  }
+    @Override
+    public String toString() {
+        return this.id + " : " + this.lastname + " " + this.firstname + " " + this.email;
+    }
 
 }
 ````
 
-### 5.4- BDD (base de données)
 
-#### 5.4.1- Générer un schema de la BDD avec Spring Boot JPA
+
+Liste d'annotation  fournies par la bibliothèque Lombok, ainsi que leurs rôles respectifs
+
+````
+Voici une liste plus complète des annotations fournies par la bibliothèque Lombok, ainsi que leurs rôles respectifs :
+
+1. `@Data`: Génère automatiquement les méthodes `toString()`, `equals()`, `hashCode()`, les getters et les setters pour tous les champs de la classe.
+
+2. `@Getter` / `@Setter`: Génère automatiquement les getters et/ou les setters pour les champs spécifiés.
+
+3. `@NoArgsConstructor`: Génère un constructeur sans arguments.
+
+4. `@AllArgsConstructor`: Génère un constructeur prenant en compte tous les champs de la classe.
+
+5. `@RequiredArgsConstructor`: Génère un constructeur prenant en compte uniquement les champs marqués avec `final` ou `@NonNull`.
+
+6. `@Builder`: Génère un constructeur de type "Builder" pour une initialisation fluide et lisible des instances de classe.
+
+7. `@ToString`: Génère automatiquement la méthode `toString()` pour la classe.
+
+8. `@EqualsAndHashCode`: Génère automatiquement les méthodes `equals()` et `hashCode()` en utilisant les champs spécifiés.
+
+9. `@Slf4j`: Génère un logger Slf4j pour la classe.
+
+10. `@Cleanup`: Gère automatiquement la fermeture des ressources telles que les flux (stream) dans un bloc `try-finally`.
+
+11. `@SneakyThrows`: Permet de lancer des exceptions vérifiées sans les déclarer dans la signature de la méthode.
+
+12. `@Value`: Génère une classe immuable avec des getters, `equals()`, `hashCode()` et une implémentation `toString()`.
+
+13. `@NonNull`: Génère automatiquement une vérification de non-nullité pour un champ ou un paramètre de méthode.
+
+14. `@Setter(AccessLevel.NONE)`: Génère un setter privé pour un champ spécifié.
+
+15. `@Getter(AccessLevel.PROTECTED)`: Génère un getter protégé pour un champ spécifié.
+
+16. `@NoArgsConstructor(access = AccessLevel.PRIVATE)`: Génère un constructeur sans arguments privé.
+
+17. `@AllArgsConstructor(access = AccessLevel.PROTECTED)`: Génère un constructeur prenant en compte tous les champs de la classe avec un niveau d'accès protégé.
+
+18. `@Builder.Default`: Permet de spécifier une valeur par défaut pour un champ dans un constructeur de type "Builder".
+
+19. `@EqualsAndHashCode.Exclude`: Exclut un champ spécifié de la génération des méthodes `equals()` et `hashCode()`.
+
+20. `@ToString.Exclude`: Exclut un champ spécifié de la génération de la méthode `toString()`.
+
+Cette liste couvre les annotations les plus couramment utilisées de Lombok. Chaque annotation offre une fonctionnalité spécifique visant à simplifier le développement en réduisant le code boilerplate dans les classes Java.
+````
+
+
+
+Liste d'annotations couramment utilisées dans le développement avec Spring Boot
+
+````
+1. `@SpringBootApplication`: Annotation utilisée pour marquer la classe principale de l'application Spring Boot. Elle combine les annotations `@Configuration`, `@EnableAutoConfiguration` et `@ComponentScan`.
+
+2. `@RestController`: Annotation utilisée pour marquer une classe qui expose des API REST. Elle est utilisée en conjonction avec `@RequestMapping` pour définir les points de terminaison REST.
+
+3. `@RequestMapping`: Annotation utilisée pour définir les points de terminaison d'une API REST. Elle peut être appliquée au niveau de la classe pour définir le préfixe commun des URL, ou au niveau des méthodes pour définir les URL spécifiques.
+
+4. `@GetMapping`, `@PostMapping`, `@PutMapping`, `@DeleteMapping`: Annotations utilisées pour définir respectivement des méthodes GET, POST, PUT et DELETE pour les points de terminaison d'une API REST.
+
+5. `@PathVariable`: Annotation utilisée pour lier une variable de chemin dans une URL à un paramètre d'une méthode de contrôleur.
+
+6. `@RequestParam`: Annotation utilisée pour lier un paramètre de requête dans l'URL à un paramètre d'une méthode de contrôleur.
+
+7. `@RequestBody`: Annotation utilisée pour lier le corps d'une requête HTTP à un objet Java dans une méthode de contrôleur.
+
+8. `@Autowired`: Annotation utilisée pour injecter automatiquement une dépendance dans une classe. Elle peut être utilisée pour injecter des dépendances via les constructeurs, les méthodes setter ou les champs.
+
+9. `@Service`: Annotation utilisée pour marquer une classe en tant que service. Les classes annotées avec `@Service` sont candidates pour l'injection de dépendances et sont détectées par l'analyse de composants de Spring.
+
+10. `@Repository`: Annotation utilisée pour marquer une classe en tant que repository (ou DAO - Data Access Object). Les classes annotées avec `@Repository` sont détectées par Spring pour la gestion des opérations de persistance des données.
+
+11. `@Component`: Annotation générique utilisée pour marquer une classe en tant que composant. Elle peut être utilisée pour diverses classes dans l'application.
+
+12. `@Configuration`: Annotation utilisée pour marquer une classe de configuration de Spring. Elle est utilisée pour définir des beans et des configurations spécifiques de l'application.
+
+13. `@Value`: Annotation utilisée pour injecter des valeurs de propriétés depuis un fichier de configuration (application.properties ou application.yml) dans les classes Spring.
+
+14. `@Transactional`: Annotation utilisée pour définir la portée transactionnelle d'une méthode ou d'une classe. Elle permet de gérer les transactions de manière automatique.
+
+Ces annotations sont largement utilisées dans le développement avec Spring Boot pour configurer l'application, définir des points de terminaison REST, gérer les dépendances et la persistance des données, et bien plus encore.
+````
+
+
+
+### Générer un schema de la BDD avec Spring Boot JPA à partir d'un script sql
 
 [Tuto baeldung](https://www.baeldung.com/spring-data-jpa-generate-db-schema)
 
-`spring.jpa.properties.javax.persistence.schema-generation.scripts.action=`
+````properties
+# ressources\application.properties
 
+spring.jpa.properties.javax.persistence.schema-generation.scripts.action=
 Les actions
+
 - **none**            : ne génère aucune commande DDL
 - **create**          : génère uniquement des commandes de création de base de données
 - **drop**            : génère uniquement des commandes de suppression de base de données
 - **drop-and-create** : génère des commandes de suppression de base de données suivies de commandes de création
+````
+
+Exemple  :
 
 ````properties
 # ressources\application.properties
@@ -442,65 +522,9 @@ spring.jpa.properties.javax.persistence.schema-generation.scripts.action=create
 spring.jpa.properties.javax.persistence.schema-generation.scripts.create-target=create.sql
 spring.jpa.properties.javax.persistence.schema-generation.scripts.create-source=metadata
 ````
-#### 5.4.2- Création de la BDD à partir d'outils
 
-Avec un outil pour SGBD (phpmyadmin ou DBeaver)
 
-#### 5.4.3- Création de la BDD en ligne de commande
-
-En ligne de commande (si pas de référence de mysql dans le path des variables d'environnement alors se placer dans le repèrtoire de mysql lancer un terminal).
-
-Connexion à MySQL
-````bash
-mysql -u <nom d_utilisateur> -p <mot_de_passe>
-````
-
-Création de la bas de donnée
-
-````bash
-CREATE DATABASE <nom_de_la_base_de_donnée>;
-````
-L'ORM devrait générer les tables à partir de classes entitées au lancement de l'application.
-
-Sinon éditer un script qui sépare ou englobe le schéma et les données `todolist.sql`.
-
-````bash
-CREATE DATABASE todolist;
-
-USE todolist;
-
-CREATE TABLE user
-  (
-    id bigint unsigned not null auto_increment, 
-    created_at datetime not null,
-    updated_at datetime null,
-    lastname varchar(255) null,
-    firstname varchar(255) null,
-    pseudo varchar(255) not null,
-    password varchar(255) null
-  );
-    
-# INSERT INTO user ( id, name ) VALUES ( null, null, null, 'Nouveau titre', 'comentaires' );
-
-CREATE TABLE todolist
-    ( 
-      id bigint unsigned not null auto_increment, 
-      created_at datetime not null,
-      updated_at datetime null,
-      title varchar(255) not null, 
-      content text,
-      constraint pk_example primary key (id) 
-    );
-
-# INSERT INTO tablename ( id, name ) VALUES ( null, null, null, 'Nouveau titre', 'comentaires' );
-````
-puis éditer les données
-
-````bash
-mysql -u <nom d_utilisateur> -p < todolist.sql
-````
-
-#### 5.4.4- Générer les tables de la BDD avec Spring Boot JPA
+### Générer les tables de la BDD avec Spring Boot JPA
 
 Spring Boot genere ou mets à jour automatiquement les tables de la base de données à partir des entites.
 
@@ -510,7 +534,11 @@ Spring Boot genere ou mets à jour automatiquement les tables de la base de donn
 spring.jpa.hibernate.ddl-auto=update
 ````
 
-## 6- Spring Boot Security et auth2 - Authentification et autorisation avec JWT (Json Web Token)
+
+
+
+
+## Spring Boot Security et auth2 - Authentification et autorisation avec JWT (Json Web Token)
 
 ![vueGlobal.png](./assets.readme/vueGlobal.png)
 
@@ -593,14 +621,14 @@ les Beans entre eux afin d’avoir toutes leurs dépendances.
     Par défaut, JPA s’attend à ce que cette colonne se nomme USER_ID, mais il est possible de changer ce nom grâce à l’annotation @JoinColumn.
     Plutôt que par une colonne, il est également possible d’indiquer à JPA qu’il doit passer par une table d’association pour établir la relation entre les deux entités avec l’annotation @JoinTable
      */
-
+    
     /*
     // Ajoute ou cible le champ user_id dans la table todo pour conserver la référence de la clé étrangère utilisateur
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id")
     private UserEntity user;
     */
-
+    
     /*
      Passer par la création d'une table d’association
      @ManyToOne(cascade = CascadeType.ALL)
