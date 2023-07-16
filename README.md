@@ -99,13 +99,12 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
-      # Generer ou mettre à jour automatiquement les tables de la base de données à partir des classes d'entites.
-      # create-drop:
-      # create: Crée le schema de BDD et detruit le prédécent
-      # none: Désactive DDL
-      # update: créer ou mets à jour le schéma de BDD si necessaire
-      # validate:
-      ddl-auto: create-drop
+      ddl-auto: create-drop   # Hibernate va créer le schéma de base de données à partir des entités annotées. À la fin de l'application, le schéma sera supprimé.
+      # ddl-auto: create        # Hibernate va créer le schéma de base de données à partir des entités annotées. Si des tables existent déjà, elles seront supprimées et recréées.
+      # ddl-auto: none:         # Aucune action DDL automatique ne sera effectuée par Hibernate. Cela signifie que vous devez gérer manuellement la création et la mise à jour des schémas de base de données.
+      # ddl-auto: update        # Hibernate va mettre à jour le schéma de base de données pour refléter les changements apportés aux entités annotées. Cela peut inclure la création de nouvelles tables, l'ajout de nouvelles colonnes, etc. Les données existantes ne seront pas supprimées.
+      # ddl-auto: validate      # Hibernate va valider le schéma de base de données par rapport aux entités annotées, mais aucune modification ne sera apportée à la base de données.
+
     # Le moyen le plus simple de vider les requêtes sql vers la sortie standard mais a priori non recommandé
     show-sql: true
     properties:
@@ -160,7 +159,7 @@ Execute Maven Goal
 
 ## Démarrer le projet
 
-![image-20230716135559693](D:\WORKSPACE\2_DEV\workspace_java\java_projects\auth-JWT-springBoot\README.assets\image-20230716135559693.png)
+![image-20230716135559693](.\README.assets\image-20230716135559693.png)
 
 
 
@@ -181,7 +180,7 @@ En résumé, Spring Security ne fait qu’ajouter des traitements à cette orche
 
 **L’ensemble des Servlet Filters constitue la Filter Chain de Spring Security**.
 
-![filter_chain.png](./assets.readme/filter_chain.png)
+![filter_chain.png](./README.assets/filter_chain.png)
 
 Cliquer sur la flèche verte en haut a droite `"Run api.todolist"` pour démarrer l'apllication.
 
@@ -193,27 +192,27 @@ DefaultLoginPageGeneratingFilter : construit une page d’authentification par d
 
 UsernamePasswordAuthenticationFilter : analyse une soumission de formulaire d’authentification, qui doit fournir un couple username/password. Ce filtre est activé par défaut sur l’URL /login.
 
-![authentification.png](./assets.readme/authentification.png)
+![authentification.png](./README.assets/authentification.png)
 
 Username : `user`
 
 Password : Celui afficher dans la console (run) : Using generated security password: d1e8c588-10ca-48f0-9f95-550355fce7fb
 
-![start.png](./assets.readme/start.png)
+![start.png](./README.assets/start.png)
 
 
 Par defaut spring boot security forunit une protection csrf sur les formulaires
 
 CsrfFilter : applique une protection contre les attaques de type Cross-Site Request Forgery en utilisant un token, usuellement stocké dans la HttpSession. Il est souvent demandé aux développeurs d’invoquer ce filtre avant toute requête susceptible de modifier l’état de l’application (usuellement les requête de type POST, PUT, DELETE et parfois OPTIONS).
 
-![protection_csrf.png](./assets.readme/protection_csrf.png)
+![protection_csrf.png](./README.assets/protection_csrf.png)
 
 Requête envoyée au serveur aprés soumission du formulaire d'authentification
 - username
 - password
 - jeton crsf
 
-![login.png](./assets.readme/login.png)
+![login.png](./README.assets/login.png)
 
 Le serveur vérifie si l'utlisateur est authentifié puis envoie un cookie de session contenant l'identifiant.
 
@@ -221,11 +220,11 @@ Chaque fois que l'utilisateur enverra une requête au serveur, le cookie de sess
 
 **UsernamePasswordAuthenticationFilter** : analyse une soumission de formulaire d’authentification, qui doit fournir un couple username/password. Ce filtre est activé par défaut sur l’URL /login.
 
-![cookie.png](./assets.readme/cookie.png)
+![cookie.png](./README.assets/cookie.png)
 
 Ce message d'erreur signifie qu'il n'exite pas de page web a renvoyer.
 
-![web_page_error.png](./assets.readme/web_page_error.png)
+![web_page_error.png](./README.assets/web_page_error.png)
 
 pour en créer une dans le dossier `src\main\ressources\static\index.html`
 
@@ -540,7 +539,7 @@ spring.jpa.hibernate.ddl-auto=update
 
 ## Spring Boot Security et auth2 - Authentification et autorisation avec JWT (Json Web Token)
 
-![vueGlobal.png](./assets.readme/vueGlobal.png)
+![vueGlobal.png](./README.assets/vueGlobal.png)
 
 – **WebSecurityConfig** est au cœur de notre mise en œuvre de la sécurité. Il configure cors, csrf, la gestion de session, 
 les règles pour les ressources protégées. Nous pouvons également étendre et personnaliser la configuration par défaut qui contient

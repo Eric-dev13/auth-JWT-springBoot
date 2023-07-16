@@ -26,7 +26,7 @@ spring:
     # profil a charger par défaut defini dans application.yml
     # active: dev
     # Profil Maven : peut être activé via la propriété de configuration spring.profiles.active
-    #	  Sa valeur sera utilisée pour remplacer l' espace réservé @spring.profiles.active@ dans application.properties ou application.yml
+    #	Sa valeur sera utilisée pour remplacer l' espace réservé @spring.profiles.active@ dans application.properties ou application.yml
     active: @spring.profiles.active@
 
 
@@ -46,13 +46,13 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
-      # Generer ou mettre à jour automatiquement les tables de la base de données à partir des classes d'entites.
-      # create-drop:
-      # create: Crée le schema de BDD et detruit le prédécent
-      # none: Désactive DDL
-      # update: créer ou mets à jour le schéma de BDD si necessaire
-      # validate:
-      ddl-auto: create-drop
+      ddl-auto: create-drop   # Hibernate va créer le schéma de base de données à partir des entités annotées. À la fin de l'application, le schéma sera supprimé.
+      # ddl-auto: create        # Hibernate va créer le schéma de base de données à partir des entités annotées. Si des tables existent déjà, elles seront supprimées et recréées.
+      # ddl-auto: none:         # Aucune action DDL automatique ne sera effectuée par Hibernate. Cela signifie que vous devez gérer manuellement la création et la mise à jour des schémas de base de données.
+      # ddl-auto: update        # Hibernate va mettre à jour le schéma de base de données pour refléter les changements apportés aux entités annotées. Cela peut inclure la création de nouvelles tables, l'ajout de nouvelles colonnes, etc. Les données existantes ne seront pas supprimées.
+      # ddl-auto: validate      # Hibernate va valider le schéma de base de données par rapport aux entités annotées, mais aucune modification ne sera apportée à la base de données.
+
+
     # Le moyen le plus simple de vider les requêtes sql vers la sortie standard mais a priori non recommandé
     show-sql: true
     properties:
